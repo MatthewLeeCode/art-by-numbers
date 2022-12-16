@@ -18,7 +18,7 @@ def test_kmeans_cluster():
     image[0, 1, :] = [0, 0, 255]
     
     # Perform the K-means clustering
-    cluster_dict = clustering.kmeans_cluster(image, 3)
+    cluster_dict, clustered_image = clustering.kmeans_cluster(image, 3)
     
     # Check that the cluster dictionary contains the correct number of clusters
     assert len(cluster_dict) == 3
@@ -31,3 +31,6 @@ def test_kmeans_cluster():
 
     # Check that no other colors are in the cluster dictionary
     assert len(cluster_dict.values()) == 3
+    
+    # Check that clustered image matches the original image
+    assert np.array_equal(image, np.array(clustered_image))

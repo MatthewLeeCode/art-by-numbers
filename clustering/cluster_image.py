@@ -12,10 +12,11 @@ def kmeans_cluster(image:Image, k:int) -> dict:
         
     Returns:
         dict: A dictionary containing the cluster labels and colors. Colors are RGB values.
+        Image: The clustered image.
         
     Examples:
         >>> kmeans_cluster(image, 3)
-        {0: (0, 0, 0), 1: (255, 255, 255), 2: (255, 0, 0)}
+        {0: (0, 0, 0), 1: (255, 255, 255), 2: (255, 0, 0)}, Image
     """
     # Check types
     assert isinstance(image, Image.Image) or isinstance(image, np.ndarray)
@@ -46,5 +47,19 @@ def kmeans_cluster(image:Image, k:int) -> dict:
     # Create a dictionary of cluster labels and colors
     cluster_dict = dict(zip(labels, cluster_colors))
     
-    return cluster_dict
+    # Reshape the labels to the original image shape
+    labels = np.reshape(labels, (w, h))
+
+    # Create a new image array
+    new_image_array = np.zeros((w, h, d), dtype=np.uint8)
+    
+    # Assign the cluster colors to the new image array
+    for i in range(w):
+        for j in range(h):
+            new_image_array[i, j, :] = cluster_dict[labels[i, j]]
+            
+    # Convert the new image array to an image
+    new_image = Image.fromarray(new_image_array)
+    
+    return cluster_dict, new_image
     
