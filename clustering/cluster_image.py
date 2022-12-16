@@ -44,8 +44,10 @@ def kmeans_cluster(image:Image, k:int) -> dict:
     # Convert the cluster centers to RGB values
     cluster_colors = [tuple(map(int, center)) for center in cluster_centers]
     
-    # Create a dictionary of cluster labels and colors
-    cluster_dict = dict(zip(labels, cluster_colors))
+    # For each label, create a dictionary entry
+    cluster_dict = {}
+    for label in labels:
+        cluster_dict[label] = cluster_colors[label]
     
     # Reshape the labels to the original image shape
     labels = np.reshape(labels, (w, h))
@@ -56,10 +58,46 @@ def kmeans_cluster(image:Image, k:int) -> dict:
     # Assign the cluster colors to the new image array
     for i in range(w):
         for j in range(h):
-            new_image_array[i, j, :] = cluster_dict[labels[i, j]]
+            new_image_array[i, j] = cluster_dict[labels[i, j]]
             
     # Convert the new image array to an image
     new_image = Image.fromarray(new_image_array)
     
     return cluster_dict, new_image
+
+
+def create_mask(clustered_image:Image, rgb:tuple) -> Image:
+    """ Creates a mask of the image that matches a color.
+    
+    Args:
+        clustered_image (Image): The clustered image.
+        rgb (tuple): The RGB color to mask.
+        
+    Returns:
+        Image: The mask image which aligns with the rgb 
+               values in the clustered image.
+    """
+    # Check types
+    assert isinstance(clustered_image, Image.Image) or isinstance(clustered_image, np.ndarray)
+    assert isinstance(rgb, tuple)
+    
+    # Convert the image to a numpy array
+    image_array = np.array(clustered_image)
+    
+    # Get the shape of the image
+    w, h, d = image_array.shape
+    
+    # Create a new image array
+    mask_image_array = np.zeros((w, h), dtype=np.uint8)
+    
+    # Assign the cluster colors to the new image array
+    for i in range(w):
+        for j in range(h):
+            if np.array_equal(image_array[i, j, :], rgb):
+                mask_image_array[i, j] = 1
+            
+    # Convert the new image array to an image
+    mask = Image.fromarray(mask_image_array)
+    
+    return mask
     
