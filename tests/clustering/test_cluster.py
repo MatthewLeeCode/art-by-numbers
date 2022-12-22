@@ -5,7 +5,7 @@ import clustering
 import numpy as np
 
 
-def create_test_image():
+def create_test_image() -> tuple[np.ndarray, dict[tuple, tuple]]:
     """ Creates a test image
     
     Is a 3 pixel RGB image with the following colors:
@@ -34,7 +34,7 @@ def create_test_image():
     return image, color_locations
 
 
-def test_kmeans_cluster():
+def test_kmeans_cluster() -> None:
     """ Tests the kmeans_cluster function. """
     # Create a test image
     image, _ = create_test_image()
@@ -60,7 +60,7 @@ def test_kmeans_cluster():
     assert np.array_equal(image, np.array(clustered_image))
     
     
-def test_create_mask():
+def test_create_mask() -> None:
     """ Tests the create_mask function. """
     # Create a test image
     image, color_locations = create_test_image()
@@ -78,7 +78,7 @@ def test_create_mask():
         # Assert that the masks are equal
         assert np.array_equal(expected_mask, np.array(mask))
 
-def test_create_mask_with_many_color():
+def test_create_mask_with_many_color() -> None:
     """ Tests that create_mask function can handle many of the same color """
     # Create a test image
     image, _ = create_test_image()
@@ -95,7 +95,7 @@ def test_create_mask_with_many_color():
     expected_mask[1, 1] = 1
     assert np.array_equal(expected_mask, np.array(mask))
 
-def test_clustering_integration():
+def test_clustering_integration() -> None:
     """
     Integration test for the clustering module.
     
