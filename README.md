@@ -1,2 +1,8 @@
 # art-by-numbers
-Converts image to paint-by-numbers (WIP)
+## Currently a work in progress
+
+## Description
+A python package to convert images into various number crafts such as:
+- Paint-by-numbers
+- Diamond painting
+- Cross-stitch
