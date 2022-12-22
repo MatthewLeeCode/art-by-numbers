@@ -9,16 +9,15 @@ into one of those k colors based on their similarity (Euclidean distance).
 Once we convert the colors into k colors, we can create a mask for each color. The mask
 is used in the next steps to create the art-by-numbers image.
 """
-from PIL import Image
 import numpy as np
 from sklearn.cluster import KMeans
 
 
-def kmeans_cluster(image:Image, k:int) -> dict:
+def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
     """ Performs a K-means cluster. Returns a dict containing the cluster labels and colors.
     
     Args:
-        image (Image): The image to cluster.
+        image (np.ndarray): The image to cluster 
         k (int): The number of clusters.
         
     Returns:
@@ -30,7 +29,7 @@ def kmeans_cluster(image:Image, k:int) -> dict:
         {0: (0, 0, 0), 1: (255, 255, 255), 2: (255, 0, 0)}, Image
     """
     # Check types
-    assert isinstance(image, Image.Image) or isinstance(image, np.ndarray)
+    assert isinstance(image, np.ndarray)
     assert isinstance(k, int)
     
     # Convert the image to a numpy array
@@ -70,14 +69,13 @@ def kmeans_cluster(image:Image, k:int) -> dict:
     for i in range(w):
         for j in range(h):
             new_image_array[i, j] = cluster_dict[labels[i, j]]
-            
-    # Convert the new image array to an image
-    new_image = Image.fromarray(new_image_array)
+    
+    new_image = np.array(new_image_array)
     
     return cluster_dict, new_image
 
 
-def create_mask(clustered_image:Image, rgb:tuple) -> Image:
+def create_mask(clustered_image:np.ndarray, rgb:tuple) -> np.ndarray:
     """ Creates a mask of the image that matches a color.
     
     Args:
@@ -89,7 +87,7 @@ def create_mask(clustered_image:Image, rgb:tuple) -> Image:
                values in the clustered image.
     """
     # Check types
-    assert isinstance(clustered_image, Image.Image) or isinstance(clustered_image, np.ndarray)
+    assert isinstance(clustered_image, np.ndarray)
     assert isinstance(rgb, tuple)
     
     # Convert the image to a numpy array
@@ -108,7 +106,7 @@ def create_mask(clustered_image:Image, rgb:tuple) -> Image:
                 mask_image_array[i, j] = 1
             
     # Convert the new image array to an image
-    mask = Image.fromarray(mask_image_array)
+    mask = np.array(mask_image_array)
     
     return mask
     
