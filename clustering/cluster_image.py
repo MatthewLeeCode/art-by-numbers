@@ -70,7 +70,7 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
         for j in range(h):
             new_image_array[i, j] = cluster_dict[labels[i, j]]
     
-    new_image = np.array(new_image_array)
+    new_image = np.array(new_image_array, dtype=np.uint8)
     
     return cluster_dict, new_image
 
@@ -106,7 +106,7 @@ def create_mask(clustered_image:np.ndarray, rgb:tuple) -> np.ndarray:
                 mask_image_array[i, j] = 1
             
     # Convert the new image array to an image
-    mask = np.array(mask_image_array)
+    mask = np.array(mask_image_array, dtype=np.uint8)
     
     return mask
     
