@@ -1,3 +1,14 @@
+"""
+Performs clustering on an image to find colours that are similar.
+Any art-by-numbers type craft will simplify the image into a few colours because
+an image could have thousands of colours and we (probably) don't have thousands of paints!
+
+Clustering finds k colors that represent the image. All colors are then converted
+into one of those k colors based on their similarity (Euclidean distance).
+
+Once we convert the colors into k colors, we can create a mask for each color. The mask
+is used in the next steps to create the art-by-numbers image.
+"""
 from PIL import Image
 import numpy as np
 from sklearn.cluster import KMeans
