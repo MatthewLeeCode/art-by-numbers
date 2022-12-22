@@ -8,8 +8,8 @@ except IOError:
 
 setup(
     name="art-by-numbers",
-    version="0.0.0",
-    description="Paint-by-numbers converter",
+    version="0.0.1",
+    description="Art-by-Numbers is a Python library for creating craft projects using numbered sections for painting, coloring, or other art projects.",
     license="MIT",
     author="Matthew Lee",
     packages=find_packages(),
