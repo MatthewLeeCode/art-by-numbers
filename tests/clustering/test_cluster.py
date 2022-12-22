@@ -33,6 +33,7 @@ def create_test_image():
     
     return image, color_locations
 
+
 def test_kmeans_cluster():
     """ Tests the kmeans_cluster function. """
     # Create a test image
@@ -57,6 +58,7 @@ def test_kmeans_cluster():
     
     # Check that clustered image matches the original image
     assert np.array_equal(image, np.array(clustered_image))
+    
     
 def test_create_mask():
     """ Tests the create_mask function. """
