@@ -114,9 +114,25 @@ def create_test_image_with_embedded_squares() -> tuple[np.ndarray, np.ndarray]:
     In total, there will be 5 contours:
     A1, B1, A2, B2, C
     
+    ┌─────────────────────────┐
+   3│4                        │
+  A1│A2                       │
+    │   ┌─────────────────┐   │
+    │  1│2                │   │
+    │ B1│B2  ┌───────┐    │   │
+    │   │   0│███████│    │   │
+    │   │   C│███████│    │   │
+    │   │    └───────┘    │   │
+    │   │                 │   │
+    │   └─────────────────┘   │
+    │                         │
+    └─────────────────────────┘
+    
+    Numbers represent the index of the contour in the returned list.
+    
     returns:
         np.ndarray: the test image.
-        np.ndarray: The expected contours.
+        np.ndarray: The expected hierachy.
     """
     # create a test image
     image = np.zeros((50, 50), dtype=np.uint8)
@@ -157,6 +173,75 @@ def create_test_image_with_embedded_squares() -> tuple[np.ndarray, np.ndarray]:
     
     return image, expected_hierachy
     
+
+def create_test_image_with_multiple_hierachy_trees() -> tuple[np.ndarray, np.ndarray]:
+    """ Creates a test image with multiple hierachy trees.
+    
+    Is a 50x50 image with three squares:
+    A: 20x20 square in the top-left with a thickness of 2 pixels (not filled)
+    B: 10x10 square in the top-left inside A
+    C: 15x15 square in the bottom right with a thickness of 2 pixels (not filled)
+    
+    A and B will be in one hierachy tree and C will be in another.
+
+    ┌────────────────────────────────────────┐
+    │    ┌─────────────────┐                 │
+    │   3│4                │                 │
+    │  A1│A2               │                 │
+    │    │    ┌───────┐    │                 │
+    │    │   2│███████│    │                 │
+    │    │   B│███████│    │                 │
+    │    │    └───────┘    │                 │
+    │    └─────────────────┘                 │
+    │                          ┌─────────┐   │
+    │                        C1│C2       │   │
+    │                         0│1        │   │
+    │                          └─────────┘   │
+    └────────────────────────────────────────┘
+    
+    returns:
+        np.ndarray: the test image.
+        np.ndarray: The expected hierachy.
+    """
+    # create a test image
+    image = np.zeros((50, 50), dtype=np.uint8)
+    
+    # create the squares
+    
+    # A: 20x20 square in the top-left with a thickness of 2 pixels (not filled)
+    image[5:25, 5:25] = 1
+    image[7:23, 7:23] = 0
+    
+    # B: 10x10 square in the top-left inside A
+    image[10:20, 10:20] = 1
+    
+    # C: 15x15 square in the bottom right
+    image[30:45, 30:45] = 1
+    image[32:43, 32:43] = 0
+    
+    # The expected hierarchy to compare against.
+    # We are using 'RETR_CCOMP' which will return the contours in 2 levels (Parent, children) 
+    expected_hierachy = []
+    
+    # C1 hierarchy which has one child (C2)
+    expected_hierachy.append(np.array([2, -1, 1, -1]))
+    
+    # C2 hierarchy which has no children and C1 as a parent
+    expected_hierachy.append(np.array([-1, -1, -1, 0]))
+    
+    # B hierarchy which has no children or parents
+    expected_hierachy.append(np.array([3, 0, -1, -1]))
+    
+    # A1 hierarchy which has one child (A2)
+    expected_hierachy.append(np.array([-1, 2, 4, -1]))
+    
+    # A2 hierarchy which has no children and A1 as a parent
+    expected_hierachy.append(np.array([-1, -1, -1, 3]))
+    
+    expected_hierachy = np.array(expected_hierachy)
+    
+    return image, expected_hierachy
+
 
 def test_get_mask_contours_square() -> None:
     """ Tests the get_mask_contours function with a square. """
@@ -205,14 +290,37 @@ def test_get_mask_contours_multiple_squares() -> None:
     
     
 def test_get_mask_contours_embedded_squares() -> None:
-    """ Tests the get_mask_contours function with embedded squares. """    
+    """ Tests the get_mask_contours function with embedded squares. 
+    
+    Three squares are embedded in each other.
+    """    
     # Create a test image
     image, expected_hierarchy = create_test_image_with_embedded_squares()
     
     # Get the contours
-    contours, hierarchy = contouring.get_mask_contours(image)
+    _, hierarchy = contouring.get_mask_contours(image)
     
-    # There is only one hierarchy tree so we can just get the first one
+    # Hirarchy list is the first element of the variable
+    hierarchy = hierarchy[0]
+    
+    # Check the number of contours
+    assert len(hierarchy) == 5
+
+    # Check the hierarchy
+    assert np.array_equal(hierarchy, expected_hierarchy)
+    
+def test_get_mask_contours_with_multiple_hierachy_trees() -> None:
+    """ Tests the get_mask_contours function with multiple hierachy trees. 
+    
+    This means that there are multiple contours that are not related to each other.
+    """    
+    # Create a test image
+    image, expected_hierarchy = create_test_image_with_multiple_hierachy_trees()
+    
+    # Get the contours
+    _, hierarchy = contouring.get_mask_contours(image)
+    
+    # Hirarchy list is the first element of the variable
     hierarchy = hierarchy[0]
     
     # Check the number of contours
