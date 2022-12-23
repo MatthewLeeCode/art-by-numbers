@@ -25,10 +25,6 @@ def get_mask_contours(mask: np.ndarray, min_area: int | None=None) -> tuple[tupl
         list: A list of contours.
         hierarchy: The hierarchy of the contours.
     """
-    # Check types
-    assert isinstance(mask, np.ndarray)
-    assert isinstance(min_area, int) or min_area is None
-    
     # Find the contours. We use 'RETR_CCOMP' to find the hierarchy of the contours.
     # 'RETR_CCOMP' provides hierarchy for parent and its child contours (The holes).
     # This is all we need for our purposes. More info here: 
@@ -56,10 +52,6 @@ def find_shell_holes(contours: list, hierarchy: np.ndarray) -> list[tuple[np.nda
                 list: A list of holes.
                     np.ndarray: A hole.
     """
-    # Check types
-    assert isinstance(contours, list)
-    assert isinstance(hierarchy, np.ndarray)
-    
     # Find the shells and holes
     shells = []
     for i, contour in enumerate(contours):

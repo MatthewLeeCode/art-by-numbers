@@ -28,10 +28,6 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
         >>> kmeans_cluster(image, 3)
         {0: (0, 0, 0), 1: (255, 255, 255), 2: (255, 0, 0)}, Image
     """
-    # Check types
-    assert isinstance(image, np.ndarray)
-    assert isinstance(k, int)
-    
     # Convert the image to a numpy array
     image_array = np.array(image)
     
@@ -75,6 +71,7 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
     return cluster_dict, new_image
 
 
+
 def create_mask(clustered_image:np.ndarray, rgb:tuple) -> np.ndarray:
     """ Creates a mask of the image that matches a color.
     
@@ -86,10 +83,6 @@ def create_mask(clustered_image:np.ndarray, rgb:tuple) -> np.ndarray:
         Image: The mask image which aligns with the rgb 
                values in the clustered image.
     """
-    # Check types
-    assert isinstance(clustered_image, np.ndarray)
-    assert isinstance(rgb, tuple)
-    
     # Convert the image to a numpy array
     image_array = np.array(clustered_image)
     
