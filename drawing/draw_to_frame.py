@@ -34,25 +34,6 @@ def draw_contours(frame: np.ndarray, contours: list, color: tuple = (0, 255, 0),
     return cv2.drawContours(frame, contours, -1, color, thickness)
 
 
-def draw_label(frame: np.ndarray, label: str, position: tuple, color: tuple = (0, 0, 0), font: int = cv2.FONT_HERSHEY_SIMPLEX, scale: float = 1, thickness: int = 1) -> np.ndarray:
-    """ Draws the given label on the given frame.
-    
-    Args:
-        frame (np.ndarray): The frame to draw on.
-        label (str): The label to draw.
-        position (tuple): The position of the label.
-        color (tuple, optional): The color of the label. Defaults to (0, 255, 0).
-        font (int, optional): The font of the label. Defaults to cv2.FONT_HERSHEY_SIMPLEX.
-        scale (float, optional): The scale of the label. Defaults to 1.
-        thickness (int, optional): The thickness of the label. Defaults to 1.
-        
-    Returns:
-        np.ndarray: The frame with the label drawn on it.
-    """
-    # Check types
-    return cv2.putText(frame, label, position, font, scale, color, thickness, cv2.LINE_AA)
-
-
 def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple = (0, 0, 0), font: int = cv2.FONT_HERSHEY_SIMPLEX, scale: float = 1, thickness: int = 1) -> np.ndarray:
     """ Draws the given labels on the given frame.
     
@@ -69,5 +50,5 @@ def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple =
         np.ndarray: The frame with the labels drawn on it.
     """
     for label, position in zip(labels, positions):
-        frame = draw_label(frame, label, position, color, font, scale, thickness)
+        cv2.putText(frame, label, position, font, scale, color, thickness, cv2.LINE_AA)
     return frame
