@@ -48,6 +48,15 @@ def find_representative_point(shell: np.ndarray, holes: list[np.ndarray]=None) -
         >>> find_representative_point(shell, holes)
         array([0.25, 0.5])
     """
+    assert shell.ndim == 2
+    assert shell.shape[1] == 2
+    assert shell.shape[0] >= 3
+    if holes is not None:
+        for hole in holes:
+            assert hole.ndim == 2
+            assert hole.shape[1] == 2
+            assert hole.shape[0] >= 3
+    
     polygon = shapely.geometry.Polygon(shell, holes)
     if polygon.is_valid:
         # This is the representative point of the polygon
