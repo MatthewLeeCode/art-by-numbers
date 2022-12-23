@@ -29,8 +29,11 @@ def get_mask_contours(mask: np.ndarray, min_area: int | None=None) -> tuple[tupl
     assert isinstance(mask, np.ndarray)
     assert isinstance(min_area, int) or min_area is None
     
-    # Find the contours
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Find the contours. We use 'RETR_CCOMP' to find the hierarchy of the contours.
+    # 'RETR_CCOMP' provides hierarchy for parent and its child contours (The holes).
+    # This is all we need for our purposes. More info here: 
+    # https://docs.opencv.org/3.4/d9/d8b/tutorial_py_contours_hierarchy.html
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     
     # Filter the contours
     if min_area is not None:
