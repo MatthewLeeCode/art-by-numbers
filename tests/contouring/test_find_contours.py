@@ -132,7 +132,7 @@ def create_test_image_with_embedded_squares() -> tuple[np.ndarray, np.ndarray]:
     
     returns:
         np.ndarray: the test image.
-        np.ndarray: The expected hierachy.
+        np.ndarray: The expected hierarchy.
     """
     # create a test image
     image = np.zeros((50, 50), dtype=np.uint8)
@@ -152,37 +152,37 @@ def create_test_image_with_embedded_squares() -> tuple[np.ndarray, np.ndarray]:
     
     # The expected hierarchy to compare against.
     # We are using 'RETR_CCOMP' which will return the contours in 2 levels (Parent, children) 
-    expected_hierachy = []
+    expected_hierarchy = []
     
     # C Has no children so the hierarchy is -1. 
-    expected_hierachy.append(np.array([1, -1, -1, -1]))
+    expected_hierarchy.append(np.array([1, -1, -1, -1]))
     
     # B1 has one child (B2)
-    expected_hierachy.append(np.array([3, 0, 2, -1]))
+    expected_hierarchy.append(np.array([3, 0, 2, -1]))
     
     # B2 has no children
-    expected_hierachy.append(np.array([-1, -1, -1, 1]))
+    expected_hierarchy.append(np.array([-1, -1, -1, 1]))
     
     # A1 has one child (A2)
-    expected_hierachy.append(np.array([-1, 1, 4, -1]))
+    expected_hierarchy.append(np.array([-1, 1, 4, -1]))
     
     # A2 has no children
-    expected_hierachy.append(np.array([-1, -1, -1, 3]))
+    expected_hierarchy.append(np.array([-1, -1, -1, 3]))
             
-    expected_hierachy = np.array(expected_hierachy)
+    expected_hierarchy = np.array(expected_hierarchy)
     
-    return image, expected_hierachy
+    return image, expected_hierarchy
     
 
-def create_test_image_with_multiple_hierachy_trees() -> tuple[np.ndarray, np.ndarray]:
-    """ Creates a test image with multiple hierachy trees.
+def create_test_image_with_multiple_hierarchy_trees() -> tuple[np.ndarray, np.ndarray]:
+    """ Creates a test image with multiple hierarchy trees.
     
     Is a 50x50 image with three squares:
     A: 20x20 square in the top-left with a thickness of 2 pixels (not filled)
     B: 10x10 square in the top-left inside A
     C: 15x15 square in the bottom right with a thickness of 2 pixels (not filled)
     
-    A and B will be in one hierachy tree and C will be in another.
+    A and B will be in one hierarchy tree and C will be in another.
 
     ┌────────────────────────────────────────┐
     │    ┌─────────────────┐                 │
@@ -201,7 +201,7 @@ def create_test_image_with_multiple_hierachy_trees() -> tuple[np.ndarray, np.nda
     
     returns:
         np.ndarray: the test image.
-        np.ndarray: The expected hierachy.
+        np.ndarray: The expected hierarchy.
     """
     # create a test image
     image = np.zeros((50, 50), dtype=np.uint8)
@@ -221,26 +221,26 @@ def create_test_image_with_multiple_hierachy_trees() -> tuple[np.ndarray, np.nda
     
     # The expected hierarchy to compare against.
     # We are using 'RETR_CCOMP' which will return the contours in 2 levels (Parent, children) 
-    expected_hierachy = []
+    expected_hierarchy = []
     
     # C1 hierarchy which has one child (C2)
-    expected_hierachy.append(np.array([2, -1, 1, -1]))
+    expected_hierarchy.append(np.array([2, -1, 1, -1]))
     
     # C2 hierarchy which has no children and C1 as a parent
-    expected_hierachy.append(np.array([-1, -1, -1, 0]))
+    expected_hierarchy.append(np.array([-1, -1, -1, 0]))
     
     # B hierarchy which has no children or parents
-    expected_hierachy.append(np.array([3, 0, -1, -1]))
+    expected_hierarchy.append(np.array([3, 0, -1, -1]))
     
     # A1 hierarchy which has one child (A2)
-    expected_hierachy.append(np.array([-1, 2, 4, -1]))
+    expected_hierarchy.append(np.array([-1, 2, 4, -1]))
     
     # A2 hierarchy which has no children and A1 as a parent
-    expected_hierachy.append(np.array([-1, -1, -1, 3]))
+    expected_hierarchy.append(np.array([-1, -1, -1, 3]))
     
-    expected_hierachy = np.array(expected_hierachy)
+    expected_hierarchy = np.array(expected_hierarchy)
     
-    return image, expected_hierachy
+    return image, expected_hierarchy
 
 
 def test_get_mask_contours_square() -> None:
@@ -309,13 +309,13 @@ def test_get_mask_contours_embedded_squares() -> None:
     # Check the hierarchy
     assert np.array_equal(hierarchy, expected_hierarchy)
     
-def test_get_mask_contours_with_multiple_hierachy_trees() -> None:
-    """ Tests the get_mask_contours function with multiple hierachy trees. 
+def test_get_mask_contours_with_multiple_hierarchy_trees() -> None:
+    """ Tests the get_mask_contours function with multiple hierarchy trees. 
     
     This means that there are multiple contours that are not related to each other.
     """    
     # Create a test image
-    image, expected_hierarchy = create_test_image_with_multiple_hierachy_trees()
+    image, expected_hierarchy = create_test_image_with_multiple_hierarchy_trees()
     
     # Get the contours
     _, hierarchy = contouring.get_mask_contours(image)
