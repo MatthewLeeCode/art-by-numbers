@@ -309,7 +309,8 @@ def test_get_mask_contours_embedded_squares() -> None:
     # Check the hierarchy
     assert np.array_equal(hierarchy, expected_hierarchy)
     
-def test_get_mask_contours_with_multiple_hierarchy_trees() -> None:
+    
+def test_get_mask_contours_with_multiple_hierarchy_trees() -> None:   
     """ Tests the get_mask_contours function with multiple hierarchy trees. 
     
     This means that there are multiple contours that are not related to each other.
@@ -328,3 +329,39 @@ def test_get_mask_contours_with_multiple_hierarchy_trees() -> None:
 
     # Check the hierarchy
     assert np.array_equal(hierarchy, expected_hierarchy)
+    
+
+def test_find_shell_holes() -> None:
+    """ Tests the find_shell_holes function. 
+    
+    Given a set of contours and hierarchies, the find_shell_holes function should
+    return the indices of the contours that are holes.
+    
+    Because the contour itself is not used, just referenced, we can pass in indexes
+    """
+    contours = [0, 1, 2, 3, 4, 5]
+    
+    hierarchies = []
+    
+    # We will pretend that 0 is a shell and 1 and 2 are holes
+    hierarchies.append(np.array([3, -1, 1, -1])) # 0
+    hierarchies.append(np.array([2, -1, -1, 0])) # 1
+    hierarchies.append(np.array([-1, 1, -1, 0])) # 2
+    
+    # We will pretend that 3 is a shell and 4 is a hole
+    hierarchies.append(np.array([5, 0, 4, -1])) # 3
+    hierarchies.append(np.array([-1, -1, -1, 3])) # 4
+    
+    # We will pretend that 5 is a shell and has no holes
+    hierarchies.append(np.array([-1, 3, -1, -1])) # 5
+    
+    # Convert to numpy array
+    hierarchies = np.array([hierarchies])
+    
+    # Here is the expected output
+    expected_output = [(0, [1, 2]), (3, [4]), (5, [])]
+    
+    # Get the output
+    output = contouring.find_shell_holes(contours, hierarchies) 
+    
+    assert output == expected_output

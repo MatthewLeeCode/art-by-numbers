@@ -40,3 +40,41 @@ def get_mask_contours(mask: np.ndarray, min_area: int | None=None) -> tuple[tupl
         contours = [contour for contour in contours if min_area < cv2.contourArea(contour)]
     
     return contours, hierarchy
+
+
+def find_shell_holes(contours: list, hierarchy: np.ndarray) -> list[tuple[np.ndarray, list[np.ndarray]]]:
+    """ Finds the shells and related holes of a list of contours.
+    
+    Args:
+        contours (list): A list of contours.
+        hierarchy (np.ndarray): The hierarchy of the contours.
+        
+    Returns:
+        list: A list of tuples containing the shell and holes.
+            tuple: A tuple containing the shell and holes.
+                np.ndarray: The shell.
+                list: A list of holes.
+                    np.ndarray: A hole.
+    """
+    # Check types
+    assert isinstance(contours, list)
+    assert isinstance(hierarchy, np.ndarray)
+    
+    # Find the shells and holes
+    shells = []
+    for i, contour in enumerate(contours):
+        # Find the parent contour
+        parent_index = hierarchy[0, i, 3]
+        # If there is no parent, then this is a shell
+        if parent_index == -1:
+            # Find the holes
+            holes = []
+            for j, hole in enumerate(contours):
+                # Find the child contour
+                child_index = hierarchy[0, j, 3]
+                # If the child is the current contour, then it is a hole
+                if child_index == i:
+                    holes.append(hole)
+            shells.append((contour, holes))
+            
+    return shells
