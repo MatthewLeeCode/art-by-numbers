@@ -8,9 +8,11 @@ import numpy as np
 def create_test_image() -> tuple[np.ndarray, dict[tuple, tuple]]:
     """ Creates a test image
     
-    Is a 3 pixel RGB image with the following colors:
+    Is a 3x3 pixel RGB image with the following colors:
         - Red
         - Blue
+        - Green
+        - White
         - Black
     
     Returns:
