@@ -75,6 +75,8 @@ def find_shell_holes(contours: list, hierarchy: np.ndarray) -> list[tuple[np.nda
                 # If the child is the current contour, then it is a hole
                 if child_index == i:
                     holes.append(hole)
+            if len(holes) == 0:
+                holes = None
             shells.append((contour, holes))
             
     return shells
