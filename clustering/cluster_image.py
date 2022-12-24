@@ -11,6 +11,25 @@ is used in the next steps to create the art-by-numbers image.
 """
 import numpy as np
 from sklearn.cluster import KMeans
+import cv2
+
+
+def remove_noise(image:np.ndarray) -> np.ndarray:
+    """
+    Removes noise from an image. We don't want small clusters
+    of pixels to be considered as a color. We want large areas.
+    Removing noise means the clustering algorithm can find larger regions
+
+    Args:
+        image (np.ndarray): The image to remove noise from.
+    
+    Returns:
+        np.ndarray: The image with noise removed.
+    """
+    # Blur the image
+    blur = cv2.GaussianBlur(image, (5, 5), 0)
+    
+    return blur
 
 
 def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
