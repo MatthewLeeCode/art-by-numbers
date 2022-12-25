@@ -13,7 +13,7 @@ import shapely
 import numpy as np
 
 
-def find_representative_point(shell: np.ndarray, holes: list[np.ndarray]=None) -> np.ndarray:
+def find_visual_center(shell: np.ndarray, holes: list[np.ndarray]=None) -> np.ndarray:
     """
     Find the best place to put a label inside a polygon.
 
@@ -41,11 +41,11 @@ def find_representative_point(shell: np.ndarray, holes: list[np.ndarray]=None) -
         │   │                    │
         └───┼────────────────────┘
             │
-        Representative Point
+        Visual Center Point
 
-        >>> shell = np.array([[0, 0], [0, 1], [1, 1], [1, 0]])
-        >>> holes = [np.array([[0.5, 0.2], [0.5, 0.8], [0.8, 0.8], [0.8, 0.2]])]
-        >>> find_representative_point(shell, holes)
+        >>> shell = np.array([[[0, 0]], [[0, 1]], [[1, 1]], [[1, 0]]])
+        >>> holes = [np.array([[[0.5, 0.2]], [[0.5, 0.8]], [[0.8, 0.8]], [[0.8, 0.2]]])]
+        >>> find_visual_center(shell, holes)
         array([0.25, 0.5])
     """
     # If dimensions are 3, then we need to reshape to 2
@@ -63,7 +63,7 @@ def find_representative_point(shell: np.ndarray, holes: list[np.ndarray]=None) -
         
     polygon = shapely.geometry.Polygon(shell, holes)
     if polygon.is_valid:
-        # This is the representative point of the polygon
+        # This is the visual center point of the polygon
         point = polygon.representative_point()
         # Convert to numpy array (Returns a shapely Point object)
         point = np.array([point.x, point.y])
