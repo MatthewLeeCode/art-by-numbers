@@ -34,7 +34,7 @@ def draw_contours(frame: np.ndarray, contours: list, color: tuple = (0, 255, 0),
     return cv2.drawContours(frame, contours, -1, color, thickness)
 
 
-def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple = (0, 0, 0), font: int = cv2.FONT_HERSHEY_SIMPLEX, scale: float = 1, thickness: int = 1) -> np.ndarray:
+def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple = (0, 0, 0), font: int = cv2.FONT_HERSHEY_SIMPLEX, scales: float = [], thickness: int = 1) -> np.ndarray:
     """ Draws the given labels on the given frame.
     
     Args:
@@ -49,6 +49,9 @@ def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple =
     Returns:
         np.ndarray: The frame with the labels drawn on it.
     """
-    for label, position in zip(labels, positions):
+    if scales == []:
+        scales = [1] * len(labels)
+    for label, position, scale in zip(labels, positions, scales):
+        label = str(label)
         cv2.putText(frame, label, position, font, scale, color, thickness, cv2.LINE_AA)
     return frame

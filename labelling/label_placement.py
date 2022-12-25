@@ -48,25 +48,22 @@ def find_visual_center(shell: np.ndarray, holes: list[np.ndarray]=None) -> np.nd
         >>> find_visual_center(shell, holes)
         array([0.25, 0.5])
     """
-    # If dimensions are 3, then we need to reshape to 2
-    if shell.ndim == 3:
-        shell = np.reshape(shell, (shell.shape[0], shell.shape[2]))
-        
-    # If dimensions are 3, then we need to reshape to 2
+    # Formats the shell and holes to be in the correct format
+    shell = shell.reshape(-1, 2)
     if holes is not None:
-        temp_holes = []
-        for hole in holes:
-            if hole.ndim == 3:
-                hole = np.reshape(hole, (hole.shape[0], hole.shape[2]))
-            temp_holes.append(hole)
-        holes = temp_holes
-        
-    polygon = shapely.geometry.Polygon(shell, holes)
-    if polygon.is_valid:
+        holes = [hole.reshape(-1, 2) for hole in holes]
+
+    # Create a shapely polygon
+    try:
+        polygon = shapely.geometry.Polygon(shell, holes)
+        if not polygon.is_valid:
+            polygon = polygon.buffer(0)
         # This is the visual center point of the polygon
         point = polygon.representative_point()
+        area = polygon.area
         # Convert to numpy array (Returns a shapely Point object)
-        point = np.array([point.x, point.y])
-        return point
-    else:
-        raise ValueError("The polygon is not valid. It is probably self-intersecting.")
+        point = np.array([int(point.x), int(point.y)])
+    except shapely.errors.GEOSException as e:
+        print(e)
+        return None, None
+    return point, area
