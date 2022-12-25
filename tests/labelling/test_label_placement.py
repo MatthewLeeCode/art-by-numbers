@@ -5,7 +5,7 @@ import numpy as np
 def test_find_visual_center() -> None:
     """ Test the find_visual_center function. 
     
-                          Centroid
+                      Centroid
                          │
         ┌────────────────┼───────┐
         │Shell           │       │
