@@ -38,7 +38,7 @@ def get_mask_contours(mask: np.ndarray, min_area: int | None=None) -> tuple[tupl
     return contours, hierarchy
 
 
-def find_shell_holes(contours: list, hierarchy: np.ndarray) -> list[tuple[np.ndarray, list[np.ndarray]]]:
+def find_shell_holes(contours: list, hierarchy: np.ndarray) -> tuple[list[np.ndarray], list[list[np.ndarray]]]:
     """ Finds the shells and related holes of a list of contours.
     
     Args:
@@ -46,29 +46,37 @@ def find_shell_holes(contours: list, hierarchy: np.ndarray) -> list[tuple[np.nda
         hierarchy (np.ndarray): The hierarchy of the contours.
         
     Returns:
-        list: A list of tuples containing the shell and holes.
-            tuple: A tuple containing the shell and holes.
-                np.ndarray: The shell.
-                list: A list of holes.
-                    np.ndarray: A hole.
+        list[np.ndarray]: A list containing the shells
+        list[list[np.ndarray]]: A list of lists containing the holes for each shell
     """
     # Find the shells and holes
     shells = []
+    holes = []
     for i, contour in enumerate(contours):
-        # Find the parent contour
-        parent_index = hierarchy[0, i, 3]
-        # If there is no parent, then this is a shell
-        if parent_index == -1:
-            # Find the holes
-            holes = []
-            for j, hole in enumerate(contours):
-                # Find the child contour
-                child_index = hierarchy[0, j, 3]
-                # If the child is the current contour, then it is a hole
-                if child_index == i:
-                    holes.append(hole)
-            if len(holes) == 0:
-                holes = None
-            shells.append((contour, holes))
+        
+        
+        # If the contour has a parent, then it is a hole
+        if hierarchy[0, i, 3] != -1:
+            continue
+        
+        # Add the shell to the list
+        shells.append(contour)
+        
+        # Get the current child of this contour
+        current_child = hierarchy[0, i, 2]
+        
+        # If the current_child is -1, then there are no children
+        if current_child == -1:
+            holes.append(None)
+            continue
+        
+        # Loop through each child and add it to the list
+        children = [current_child]
+        while hierarchy[0, current_child, 0] != -1:
+            current_child = hierarchy[0, current_child, 0]
+            children.append(current_child)
+        
+        # Add the shell and holes to the list
+        holes.append(children)
             
-    return shells
+    return shells, holes

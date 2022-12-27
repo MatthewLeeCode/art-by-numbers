@@ -359,9 +359,11 @@ def test_find_shell_holes() -> None:
     hierarchies = np.array([hierarchies])
     
     # Here is the expected output
-    expected_output = [(0, [1, 2]), (3, [4]), (5, None)]
+    expected_shells = [0, 3, 5] 
+    expected_holes = [[1, 2], [4], None]
     
     # Get the output
-    output = contouring.find_shell_holes(contours, hierarchies) 
+    shells, holes = contouring.find_shell_holes(contours, hierarchies) 
     
-    assert output == expected_output
+    assert shells == expected_shells
+    assert holes == expected_holes
