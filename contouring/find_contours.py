@@ -29,7 +29,7 @@ def get_mask_contours(mask: np.ndarray) -> tuple[tuple, np.ndarray]:
     # 'RETR_CCOMP' provides hierarchy for parent and its child contours (The holes).
     # This is all we need for our purposes. More info here: 
     # https://docs.opencv.org/3.4/d9/d8b/tutorial_py_contours_hierarchy.html
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     
     return contours, hierarchy
 

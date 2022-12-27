@@ -10,7 +10,7 @@ Once we convert the colors into k colors, we can create a mask for each color. T
 is used in the next steps to create the art-by-numbers image.
 """
 import numpy as np
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, BisectingKMeans
 import cv2
 
 
@@ -27,7 +27,7 @@ def remove_noise(image:np.ndarray) -> np.ndarray:
         np.ndarray: The image with noise removed.
     """
     # Blur the image
-    blur = cv2.GaussianBlur(image, (7, 7), 0)
+    blur = cv2.GaussianBlur(image, (7, 7), sigmaX=9)
     
     return blur
 
@@ -58,7 +58,8 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
     image_array = np.reshape(image_array, (w * h, d))
     
     # Perform the K-means clustering
-    kmeans = KMeans(n_clusters=k, random_state=0, n_init="auto").fit(image_array)
+    kmeans = KMeans(n_clusters=k, random_state=0, n_init="auto", max_iter=1000).fit(image_array)
+    #kmeans = BisectingKMeans(n_clusters=k).fit(image_array)
     
     # Get the cluster labels
     labels = kmeans.labels_

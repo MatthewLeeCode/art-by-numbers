@@ -97,7 +97,6 @@ class PaintByNumbers:
         """
         with Halo(text=f'Finding mask for label {self.currently_processing_label}...', spinner='dots'):
             mask = clustering.create_mask(clustered_image=self.cluster_image, rgb=color)
-            mask = clustering.morphology(mask=mask)
         return mask
     
     def find_contours(self, mask:np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -125,6 +124,20 @@ class PaintByNumbers:
         """
         with Halo(text=f'Finding contour shells and holes for label {self.currently_processing_label}...', spinner='dots'):
             shells, holes = contouring.find_shell_holes(contours=contours, hierarchy=hierarchy)
+        return shells, holes
+    
+    def prune_contours(self, shells:list[np.ndarray], holes:list[list[np.ndarray]]) -> tuple[list, list]:
+        """ Prune the contours
+        
+        Args:
+            shells (list[np.ndarray]): The shells to prune
+            holes (list[list[np.ndarray]]): The holes to prune
+            
+        Returns:
+            tuple: The pruned shells and holes
+        """
+        with Halo(text=f'Pruning contours for label {self.currently_processing_label}...', spinner='dots'):
+            shells, holes = contouring.remove_small_contours(shells=shells, holes=holes, min_area=self.min_area)
         return shells, holes
     
     def find_label_positions(self, shells:list[np.ndarray], shell_holes:list[list[np.ndarray]]) -> tuple[list, list]:
@@ -155,13 +168,13 @@ class PaintByNumbers:
 
         return label_positions, label_scales
     
-    def draw_contours_and_labels(self, image: np.ndarray, contours:np.ndarray, label:str, label_positions:list, label_scales:list) -> np.ndarray:
+    def draw_contours_and_labels(self, image: np.ndarray, contours:list[np.ndarray], label:str, label_positions:list, label_scales:list) -> np.ndarray:
         """ Draw the contours and labels on the image
         
         Args:
             image (np.ndarray): The image to draw on
             label (str): The label to draw
-            contours (np.ndarray): The contours to draw
+            contours (list[np.ndarray]): The contours to draw
             label_positions (list): The positions of the labels
             label_scales (list): The scales of the labels
             
@@ -200,8 +213,9 @@ class PaintByNumbers:
         1. Cluster the image into k colors (Includes removing noise)
         2. Create a mask for each color in the image
         3. Find the contours for each mask
-        4. Find a label position for each contour
-        5. Draw the contours and labels on the image
+        4. Prune the contours to remove small contours
+        5. Find a label position for each contour
+        6. Draw the contours and labels on the image
         
         Assigns values for:
         - simplified_image (np.ndarray): The simplified image after noise reduction 
@@ -234,12 +248,15 @@ class PaintByNumbers:
                 # 3. Find contours
                 contours, hierarchy = self.find_contours(mask=mask)
                 shells, holes = self.find_shells_and_holes(contours=contours, hierarchy=hierarchy)
-
-                # 4. Find label position
+                
+                # 4. Prune contours
+                shells, holes = self.prune_contours(shells=shells, holes=holes)
+                
+                # 5. Find label position
                 label_positions, label_scales = self.find_label_positions(shells=shells, shell_holes=holes)
                 
-                # 5. Draw contours and labels
-                self.pbn_image = self.draw_contours_and_labels(self.pbn_image, contours, key, label_positions, label_scales)
+                # 6. Draw contours and labels
+                self.pbn_image = self.draw_contours_and_labels(self.pbn_image, shells, key, label_positions, label_scales)
             
             except Exception as e:
                 # Add success spinner message for label

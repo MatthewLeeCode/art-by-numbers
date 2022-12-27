@@ -18,28 +18,18 @@ def remove_small_contours(shells: list[np.ndarray], holes: list[list[np.ndarray]
     new_shells = []
     new_holes = []
     for shell, shell_holes in zip(shells, holes):
-        # Get the area of the shell
-        shell_area = cv2.contourArea(shell)
+        # Area of the outer shell (Without holes)
+        area = cv2.contourArea(shell)
+        
+        # Subtract hole areas
+        area = area - sum([cv2.contourArea(hole) for hole in shell_holes])
         
         # If the shell is too small, skip it
-        if shell_area <= min_area:
+        if area <= min_area:
             continue
-        
-        # Remove small holes
-        new_shell_holes = []
-        for hole in shell_holes:
-            # Get the area of the hole
-            hole_area = cv2.contourArea(hole)
-            
-            # If the hole is too small, skip it
-            if hole_area <= min_area:
-                continue
-            
-            # Add the hole to the list
-            new_shell_holes.append(hole)
         
         # Add the shell and holes to the list
         new_shells.append(shell)
-        new_holes.append(new_shell_holes)
+        new_holes.append(shell_holes)
     
     return new_shells, new_holes
