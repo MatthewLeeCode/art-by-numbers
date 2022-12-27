@@ -27,7 +27,6 @@ class PaintByNumbers:
     label_color: tuple=(0, 0, 0)
     contour_thickness: int=1
     label_thickness: int=1
-    label_scale: float=1
     label_font: int=cv2.FONT_HERSHEY_SIMPLEX
     label_positions: list=[]
     
@@ -35,8 +34,8 @@ class PaintByNumbers:
         image: np.ndarray, 
         num_colors:int=10, 
         height:int=None, 
-        width:int=None, 
-        min_area:int=50,
+        width:int=2000, 
+        min_area:int=20,
         custom_colors:list=[]) -> None:
         """ 
         Initialize the class.
@@ -49,10 +48,13 @@ class PaintByNumbers:
             min_area (int, optional): The minimum area for a contour to be considered. Defaults to 50.
             custom_colors (list, optional): A list of custom colors to use for the labels. Defaults to [].
         """
+        # Resize to match width but keep aspect ratio
         if height is None:
+            height = int(image.shape[0] * (width / image.shape[1]))
+        elif width is None:
+            width = int(image.shape[1] * (height / image.shape[0]))
+        elif height is None and width is None:
             height = image.shape[0]
-        
-        if width is None:
             width = image.shape[1]
         
         assert len(custom_colors) <= num_colors, "The number of custom colors must be less than or equal to the number of colors."
@@ -118,11 +120,19 @@ class PaintByNumbers:
             label_spinner.start()
             
             self.label_positions = []
+            self.label_scales = []
             for polygon in polygons:
                 # First element in polygon is the shell
                 # Second element in polygon is the holes
-                label_position = labelling.find_visual_center(shell=polygon[0], holes=polygon[1])
-                self.label_positions.append(label_position)
+                label_position, distance = labelling.find_visual_center(shell=polygon[0], holes=polygon[1])
+                if label_position is not None:
+                    self.label_positions.append(label_position)
+                    # Scale the label between 0.4 and 0.7 based on area
+                    # From 1000 to min_area, the scale reduces
+                    if distance < 1000:
+                        self.label_scales.append(0.7)
+                    else:
+                        self.label_scales.append(0.4)
             
             label_spinner.succeed(f'Label positions for label {key} found.')
             
@@ -131,7 +141,7 @@ class PaintByNumbers:
             draw_spinner.start()
             
             drawing.draw_contours(
-                image=self.pbn_image, 
+                frame=self.pbn_image, 
                 contours=contours, 
                 color=self.contour_color, 
                 thickness=self.contour_thickness
@@ -139,16 +149,16 @@ class PaintByNumbers:
             
             # Draw labels expects a list of labels + positions with both lists being the same size.
             # So we simply just expand the label to be a list of the same size as the label_positions
-            labels = [self.cluster_labels[key]] * len(self.label_positions)
+            labels = [key] * len(self.label_positions)
             
             # Draw labels
             drawing.draw_labels(
-                image=self.pbn_image,
+                frame=self.pbn_image,
                 labels=labels,
                 positions=self.label_positions,
                 color=self.label_color,
                 font=self.label_font,
-                scale=self.label_scale,
+                scales=self.label_scales,
                 thickness=self.label_thickness
             )
             

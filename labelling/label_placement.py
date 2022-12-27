@@ -9,7 +9,6 @@ But this is not always the case for more complex polygons such as:
 What we want is the representation point of the polygon, which is
 the point that has the most space around it inside the polygon.
 """
-import shapely
 import numpy as np
 import visual_center
 
@@ -47,11 +46,8 @@ def find_visual_center(shell: np.ndarray, holes: list[np.ndarray]=None) -> tuple
         >>> find_visual_center(shell, holes)
         array([25, 50]), 25.
     """
-    # If dimensions are 3, then we need to reshape to 2
-    if shell.ndim == 3:
-        shell = np.reshape(shell, (shell.shape[0], shell.shape[2]))
-        
-    # If dimensions are 3, then we need to reshape to 2
+    # Formats the shell and holes to be in the correct format
+    shell = shell.reshape(-1, 2)
     if holes is not None:
         temp_holes = []
         for hole in holes:
