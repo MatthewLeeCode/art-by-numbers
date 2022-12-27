@@ -31,10 +31,6 @@ def get_mask_contours(mask: np.ndarray) -> tuple[tuple, np.ndarray]:
     # https://docs.opencv.org/3.4/d9/d8b/tutorial_py_contours_hierarchy.html
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     
-    # Filter the contours
-    #if min_area is not None:
-        #contours = [contour for contour in contours if min_area < cv2.contourArea(contour)]
-    
     return contours, hierarchy
 
 
