@@ -11,9 +11,10 @@ the point that has the most space around it inside the polygon.
 """
 import shapely
 import numpy as np
+import visual_center
 
 
-def find_representative_point(shell: np.ndarray, holes: list[np.ndarray]=None) -> np.ndarray:
+def find_visual_center(shell: np.ndarray, holes: list[np.ndarray]=None) -> tuple[np.ndarray, float]:
     """
     Find the best place to put a label inside a polygon.
 
@@ -23,9 +24,7 @@ def find_representative_point(shell: np.ndarray, holes: list[np.ndarray]=None) -
     
     Returns:
         np.ndarray: A point (x, y) that is the best place to put a label inside the polygon.
-        
-    Raises:
-        ValueError: If the polygon is not valid.
+        float: The distance to the nearest edge of the polygon.
         
     Example:
                       Centroid
@@ -41,12 +40,12 @@ def find_representative_point(shell: np.ndarray, holes: list[np.ndarray]=None) -
         │   │                    │
         └───┼────────────────────┘
             │
-        Representative Point
+        Visual Center
 
-        >>> shell = np.array([[0, 0], [0, 1], [1, 1], [1, 0]])
-        >>> holes = [np.array([[0.5, 0.2], [0.5, 0.8], [0.8, 0.8], [0.8, 0.2]])]
-        >>> find_representative_point(shell, holes)
-        array([0.25, 0.5])
+        >>> shell = np.array([[0, 0], [0, 100], [100, 100], [100, 0]])
+        >>> holes = [np.array([[50, 20], [50, 80], [80, 80], [80, 20]])]
+        >>> find_visual_center(shell, holes)
+        array([25, 50]), 25.
     """
     # If dimensions are 3, then we need to reshape to 2
     if shell.ndim == 3:
@@ -61,12 +60,4 @@ def find_representative_point(shell: np.ndarray, holes: list[np.ndarray]=None) -
             temp_holes.append(hole)
         holes = temp_holes
         
-    polygon = shapely.geometry.Polygon(shell, holes)
-    if polygon.is_valid:
-        # This is the representative point of the polygon
-        point = polygon.representative_point()
-        # Convert to numpy array (Returns a shapely Point object)
-        point = np.array([point.x, point.y])
-        return point
-    else:
-        raise ValueError("The polygon is not valid. It is probably self-intersecting.")
+    return visual_center.find_pole(shell, holes)

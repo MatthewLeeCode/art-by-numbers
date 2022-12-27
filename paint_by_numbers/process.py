@@ -121,7 +121,7 @@ class PaintByNumbers:
             for polygon in polygons:
                 # First element in polygon is the shell
                 # Second element in polygon is the holes
-                label_position = labelling.find_representative_point(shell=polygon[0], holes=polygon[1])
+                label_position = labelling.find_visual_center(shell=polygon[0], holes=polygon[1])
                 self.label_positions.append(label_position)
             
             label_spinner.succeed(f'Label positions for label {key} found.')
