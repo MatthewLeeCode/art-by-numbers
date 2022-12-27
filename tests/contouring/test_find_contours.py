@@ -38,13 +38,9 @@ def create_test_image_square() -> tuple[np.ndarray, np.ndarray]:
     # value along the boarder (This means for a square, just the corners).
     expected_contours = np.array([
         [[1, 1]], # Top Left
-        [[1, 2]],
         [[1, 3]], # Top Right
-        [[2, 3]],
         [[3, 3]], # Bottom Right
-        [[3, 2]],
         [[3, 1]], # Bottom Left
-        [[2, 1]]
     ])
     
     return image, expected_contours
@@ -86,13 +82,9 @@ def create_test_image_multiple_squares() -> tuple[np.ndarray, np.ndarray]:
     expected_contours.append(
         np.array([
             [[1, 1]], # Top Left
-            [[1, 2]],
             [[1, 3]], # Top Right
-            [[2, 3]],
             [[3, 3]], # Bottom Right
-            [[3, 2]],
             [[3, 1]], # Bottom Left
-            [[2, 1]]
         ])
     )
     
@@ -360,7 +352,7 @@ def test_find_shell_holes() -> None:
     
     # Here is the expected output
     expected_shells = [0, 3, 5] 
-    expected_holes = [[1, 2], [4], None]
+    expected_holes = [[1, 2], [4], []]
     
     # Get the output
     shells, holes = contouring.find_shell_holes(contours, hierarchies) 

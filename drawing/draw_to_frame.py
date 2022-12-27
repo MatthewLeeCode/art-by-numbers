@@ -52,6 +52,7 @@ def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple =
     if scales == []:
         scales = [1] * len(labels)
     for label, position, scale in zip(labels, positions, scales):
+        position = position.astype(int)
         label = str(label)
-        cv2.putText(frame, label, position, font, scale, color, thickness, cv2.LINE_AA)
+        cv2.putText(frame, str(label), position, font, scale, color, thickness, cv2.LINE_AA)
     return frame

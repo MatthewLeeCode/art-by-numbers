@@ -13,7 +13,7 @@ import numpy as np
 import visual_center
 
 
-def find_visual_center(shell: np.ndarray, holes: list[np.ndarray]=None) -> tuple[np.ndarray, float]:
+def find_visual_center(shell: np.ndarray, holes: list[np.ndarray]=[]) -> tuple[np.ndarray, float]:
     """
     Find the best place to put a label inside a polygon.
 
@@ -47,13 +47,12 @@ def find_visual_center(shell: np.ndarray, holes: list[np.ndarray]=None) -> tuple
         array([25, 50]), 25.
     """
     # Formats the shell and holes to be in the correct format
-    shell = shell.reshape(-1, 2)
     if holes is not None:
         temp_holes = []
         for hole in holes:
             if hole.ndim == 3:
                 hole = np.reshape(hole, (hole.shape[0], hole.shape[2]))
-            temp_holes.append(hole)
+            temp_holes.append(hole.astype(int))
         holes = temp_holes
         
     return visual_center.find_pole(shell, holes)

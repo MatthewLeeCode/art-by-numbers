@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 
 
-def get_mask_contours(mask: np.ndarray, min_area: int | None=None) -> tuple[tuple, np.ndarray]:
+def get_mask_contours(mask: np.ndarray) -> tuple[tuple, np.ndarray]:
     """ Finds the contours of a mask (see clustering.cluster_image.create_mask).
     
     Args:
@@ -29,11 +29,11 @@ def get_mask_contours(mask: np.ndarray, min_area: int | None=None) -> tuple[tupl
     # 'RETR_CCOMP' provides hierarchy for parent and its child contours (The holes).
     # This is all we need for our purposes. More info here: 
     # https://docs.opencv.org/3.4/d9/d8b/tutorial_py_contours_hierarchy.html
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     
     # Filter the contours
-    if min_area is not None:
-        contours = [contour for contour in contours if min_area < cv2.contourArea(contour)]
+    #if min_area is not None:
+        #contours = [contour for contour in contours if min_area < cv2.contourArea(contour)]
     
     return contours, hierarchy
 
@@ -53,8 +53,6 @@ def find_shell_holes(contours: list, hierarchy: np.ndarray) -> tuple[list[np.nda
     shells = []
     holes = []
     for i, contour in enumerate(contours):
-        
-        
         # If the contour has a parent, then it is a hole
         if hierarchy[0, i, 3] != -1:
             continue
@@ -64,17 +62,12 @@ def find_shell_holes(contours: list, hierarchy: np.ndarray) -> tuple[list[np.nda
         
         # Get the current child of this contour
         current_child = hierarchy[0, i, 2]
-        
-        # If the current_child is -1, then there are no children
-        if current_child == -1:
-            holes.append(None)
-            continue
-        
+
         # Loop through each child and add it to the list
-        children = [current_child]
-        while hierarchy[0, current_child, 0] != -1:
-            current_child = hierarchy[0, current_child, 0]
-            children.append(current_child)
+        children = []
+        while current_child != -1:
+            children.append(contours[current_child])
+            current_child = hierarchy[0, current_child, 0] # Next child contour
         
         # Add the shell and holes to the list
         holes.append(children)

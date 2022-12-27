@@ -27,7 +27,7 @@ def remove_noise(image:np.ndarray) -> np.ndarray:
         np.ndarray: The image with noise removed.
     """
     # Blur the image
-    blur = cv2.GaussianBlur(image, (5, 5), 0)
+    blur = cv2.GaussianBlur(image, (7, 7), 0)
     
     return blur
 
@@ -41,7 +41,7 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
         
     Returns:
         dict: A dictionary containing the cluster labels and colors. Colors are RGB values.
-        Image: The clustered image.
+        np.ndarray: The clustered image.
         
     Examples:
         >>> kmeans_cluster(image, 3)
@@ -58,7 +58,7 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
     image_array = np.reshape(image_array, (w * h, d))
     
     # Perform the K-means clustering
-    kmeans = KMeans(n_clusters=k, random_state=0).fit(image_array)
+    kmeans = KMeans(n_clusters=k, random_state=0, n_init="auto").fit(image_array)
     
     # Get the cluster labels
     labels = kmeans.labels_
@@ -95,30 +95,39 @@ def create_mask(clustered_image:np.ndarray, rgb:tuple) -> np.ndarray:
     """ Creates a mask of the image that matches a color.
     
     Args:
-        clustered_image (Image): The clustered image.
+        clustered_image (np.ndarray): The clustered image.
         rgb (tuple): The RGB color to mask.
         
     Returns:
-        Image: The mask image which aligns with the rgb 
+        np.ndarray: The mask image which aligns with the rgb 
                values in the clustered image.
     """
     # Convert the image to a numpy array
     image_array = np.array(clustered_image)
     
-    # Get the shape of the image
-    w, h, d = image_array.shape
-    
-    # Create a new image array
-    mask_image_array = np.zeros((w, h), dtype=np.uint8)
-    
-    # Assign the cluster colors to the new image array
-    for i in range(w):
-        for j in range(h):
-            if np.array_equal(image_array[i, j, :], rgb):
-                mask_image_array[i, j] = 1
-            
-    # Convert the new image array to an image
-    mask = np.array(mask_image_array, dtype=np.uint8)
+    # Find the pixels that match the rgb color
+    mask = np.all(image_array == rgb, axis=-1).astype(int)
     
     return mask
+
+
+def morphology(mask:np.ndarray) -> np.ndarray:
+    """ Performs morphology on the mask image.
     
+    Morphology is used to remove noise from the mask image.
+    
+    Args:
+        mask (np.ndarray): The mask image.
+        
+    Returns:
+        np.ndarry: The morphology image.
+    """
+    mask = mask.astype(np.uint8)
+    
+    # Create a kernel
+    kernel = np.ones((5, 5), np.uint8)
+    
+    # Perform morphology
+    opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    
+    return opening

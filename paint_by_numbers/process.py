@@ -29,6 +29,7 @@ class PaintByNumbers:
     label_thickness: int=1
     label_font: int=cv2.FONT_HERSHEY_SIMPLEX
     label_positions: list=[]
+    currently_processing_label:int = None
     
     def __init__(self, 
         image: np.ndarray, 
@@ -66,15 +67,14 @@ class PaintByNumbers:
         
         # Resize image
         self.image = cv2.resize(image, (self.width, self.height))
+    
+    def cluster_image(self) -> np.ndarray:
+        """ Cluster the image into the num_colors
         
-    def process(self) -> np.ndarray:
-        """ 
-        Process the image. Creates the paint-by-numbers image and stores
-        the result in the pbn_image attribute. Additionally, it also sets
-        the cluster_labels and cluster_image attributes.
-
+        Assigns the simplified_image, cluster_labels, and cluster_image
+        
         Returns:
-            np.ndarray: The processed image.
+            np.ndarray: The clustered image
         """
         # Cluster the image
         clustering_spinner = Halo(text='Clustering image...', spinner='dots')
@@ -84,64 +84,86 @@ class PaintByNumbers:
         self.cluster_labels, self.cluster_image = clustering.kmeans_cluster(image=self.simplified_image, k=self.num_colors)
         
         clustering_spinner.succeed('Image clustered.')
+        return self.cluster_image
+    
+    def find_mask(self, color:tuple) -> np.ndarray:
+        """ Find the mask for a color
         
-        # Loop through each mask and draw the contours and labels to frame
-        # Create an empty frame
-        self.pbn_image = drawing.get_frame(height=self.height, width=self.width)
+        Args:
+            color (tuple): The RGB color to find the mask for
+            
+        Returns:
+            np.ndarray: The mask
+        """
+        with Halo(text=f'Finding mask for label {self.currently_processing_label}...', spinner='dots'):
+            mask = clustering.create_mask(clustered_image=self.cluster_image, rgb=color)
+            mask = clustering.morphology(mask=mask)
+        return mask
+    
+    def find_contours(self, mask:np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """ Find the contours for a mask
         
-        for key in self.cluster_labels.keys():
+        Args:
+            mask (np.ndarray): The mask to find contours for
             
-            # Find mask
-            mask_spinner = Halo(text=f'Processing mask for label {key}...', spinner='dots')
-            mask_spinner.start()
+        Returns:
+            tuple: The contours and hierarchy
+        """
+        with Halo(text=f'Finding contours for label {self.currently_processing_label}...', spinner='dots'):
+            contours, hierarchy = contouring.get_mask_contours(mask=mask)
+        return contours, hierarchy
+    
+    def find_shells_and_holes(self, contours:np.ndarray, hierarchy:np.ndarray) -> tuple[list, list]:
+        """ Find the shells and holes for a set of contours
+        
+        Args:
+            contours (np.ndarray): The contours to find shells and holes for
+            hierarchy (np.ndarray): The hierarchy of the contours
             
-            mask = clustering.create_mask(clustered_image=self.cluster_image, rgb=self.cluster_labels[key])
-            
-            mask_spinner.succeed(f'Mask for label {key} processed.')
-            
-            # Find contours
-            contour_spinner = Halo(text=f'Finding contours for label {key}...', spinner='dots')
-            contour_spinner.start()
-            
-            contours, hierarchy = contouring.get_mask_contours(mask=mask, min_area=self.min_area)
-            
-            contour_spinner.succeed(f'Contours for label {key} found.')
-            
-            # Find shells (outer contours) and holes (inner contours)
-            polygon_spinner = Halo(text=f'Finding shells and holes for label {key}...', spinner='dots')
-            polygon_spinner.start()
-            
-            polygons = contouring.find_shell_holes(contours=contours, hierarchy=hierarchy)
-            
-            polygon_spinner.succeed(f'Shells and holes for label {key} found.')
+        Returns:
+            tuple: The shells and holes
+        """
+        with Halo(text=f'Finding contour shells and holes for label {self.currently_processing_label}...', spinner='dots'):
+            shells, holes = contouring.find_shell_holes(contours=contours, hierarchy=hierarchy)
+        return shells, holes
+    
+    def find_label_positions(self, shells:list[np.ndarray], shell_holes:list[list[np.ndarray]]) -> tuple[list, list]:
+        """ Get the label positions for a set of shells and holes
+        
+        Args:
+            shells (list[np.ndarray]): The shells to find label positions for
+            shell_holes (list[list[np.ndarray]]): The holes to find label positions for
 
-            # Find label position
-            label_spinner = Halo(text=f'Finding label positions for label {key}...', spinner='dots')
-            label_spinner.start()
-            
-            self.label_positions = []
-            self.label_scales = []
-            for polygon in polygons:
-                # First element in polygon is the shell
-                # Second element in polygon is the holes
-                label_position, distance = labelling.find_visual_center(shell=polygon[0], holes=polygon[1])
+        Returns:
+            tuple: A list of label positions and a list of scales
+        """
+        with Halo(text=f'Finding label positions for label {self.currently_processing_label}...', spinner='dots'):
+            label_positions = []
+            label_scales = []
+            for shell, holes in zip(shells, shell_holes):
+                label_position, distance = labelling.find_visual_center(shell=shell, holes=holes)
                 if label_position is not None:
-                    self.label_positions.append(label_position)
-                    # Scale the label between 0.4 and 0.7 based on area
-                    # From 1000 to min_area, the scale reduces
-                    if distance < 1000:
-                        self.label_scales.append(0.7)
-                    else:
-                        self.label_scales.append(0.4)
+                    label_positions.append(label_position)
+                    label_scales.append(0.5) # TODO: Calculate scale based on distance
+
+        return label_positions, label_scales
+    
+    def draw_contours_and_labels(self, image: np.ndarray, contours:np.ndarray, label:str, label_positions:list, label_scales:list) -> np.ndarray:
+        """ Draw the contours and labels on the image
+        
+        Args:
+            image (np.ndarray): The image to draw on
+            label (str): The label to draw
+            contours (np.ndarray): The contours to draw
+            label_positions (list): The positions of the labels
+            label_scales (list): The scales of the labels
             
-            label_spinner.succeed(f'Label positions for label {key} found.')
-            
-            # Draw contours and labels
-            draw_spinner = Halo(text=f'Drawing contours and labels for label {key}...', spinner='dots')
-            draw_spinner.start()
-            
-            drawing.draw_contours(
-                frame=self.pbn_image, 
+        Returns:
+            np.ndarray: The image with contours and labels drawn on it
+        """
+        with Halo(text=f'Drawing contours and labels for label {self.currently_processing_label}...', spinner='dots'):
+            image = drawing.draw_contours(
+                frame=image, 
                 contours=contours, 
                 color=self.contour_color, 
                 thickness=self.contour_thickness
@@ -149,31 +171,76 @@ class PaintByNumbers:
             
             # Draw labels expects a list of labels + positions with both lists being the same size.
             # So we simply just expand the label to be a list of the same size as the label_positions
-            labels = [key] * len(self.label_positions)
+            labels = [label] * len(label_positions)
             
             # Draw labels
-            drawing.draw_labels(
-                frame=self.pbn_image,
+            image = drawing.draw_labels(
+                frame=image,
                 labels=labels,
-                positions=self.label_positions,
+                positions=label_positions,
                 color=self.label_color,
                 font=self.label_font,
-                scales=self.label_scales,
+                scales=label_scales,
                 thickness=self.label_thickness
             )
+        return image
+        
+    def process(self) -> np.ndarray:
+        """ 
+        Process the image.
+        
+        Steps:
+        1. Cluster the image into k colors (Includes removing noise)
+        2. Create a mask for each color in the image
+        3. Find the contours for each mask
+        4. Find a label position for each contour
+        5. Draw the contours and labels on the image
+        
+        Assigns values for:
+        - simplified_image (np.ndarray): The simplified image after noise reduction 
+        - cluster_labels (dict): The labels for each cluster
+        - cluster_image (np.ndarray): The clustered image 
+        - pbn_image (np.ndarray): The processed image with contours and labels drawn on it
+        - label_positions (list): The positions of the labels
+
+        Returns:
+            np.ndarray: The processed image.
+        """
+        # 1. Cluster the image into k colors (Includes removing noise)
+        self.cluster_image()
+        
+        # Create an empty frame
+        self.pbn_image = drawing.get_frame(height=self.height, width=self.width)
+        
+        # Order the keys so that the labels are drawn in the correct order
+        label_keys = self.cluster_labels.keys()
+        label_keys = sorted(label_keys, key=lambda x: int(x))
+        
+        # Loop through each color
+        for key in label_keys:
+            self.currently_processing_label = key
+            success_spinner = Halo(text=f'Label {key} processing...', spinner='dots')
+            try:
+                # 2. Find mask for each color
+                mask = self.find_mask(color=self.cluster_labels[key])
+
+                # 3. Find contours
+                contours, hierarchy = self.find_contours(mask=mask)
+                shells, holes = self.find_shells_and_holes(contours=contours, hierarchy=hierarchy)
+
+                # 4. Find label position
+                label_positions, label_scales = self.find_label_positions(shells=shells, shell_holes=holes)
+                
+                # 5. Draw contours and labels
+                self.pbn_image = self.draw_contours_and_labels(self.pbn_image, contours, key, label_positions, label_scales)
             
-            draw_spinner.succeed(f'Contours and labels for label {key} drawn.')
+            except Exception as e:
+                # Add success spinner message for label
+                success_spinner.fail(f'Label {self.currently_processing_label} failed to process.')
+                raise e
             
-            # Clear spinners
-            mask_spinner.stop()
-            contour_spinner.stop()
-            polygon_spinner.stop()
-            label_spinner.stop()
-            draw_spinner.stop()
-            
-            # Add success spinner message for label
-            success_spinner = Halo(text=f'Label {key} processed.', spinner='dots')
-            success_spinner.succeed()
+            # Successful completion of this mask
+            success_spinner.succeed(f'Label {self.currently_processing_label} processed.')
             
         # Return the final paint-by-numbers image
         return self.pbn_image
