@@ -144,7 +144,11 @@ class PaintByNumbers:
                 label_position, distance = labelling.find_visual_center(shell=shell, holes=holes)
                 if label_position is not None:
                     label_positions.append(label_position)
-                    label_scales.append(0.5) # TODO: Calculate scale based on distance
+                    # Max scale is capped at 1
+                    # Label scales based on distance
+                    # 0 - 1 scales between distance 0 and 30
+                    # Uses min-max scaling
+                    scale = min(1, (distance - 0) / (200 - 0))
 
         return label_positions, label_scales
     

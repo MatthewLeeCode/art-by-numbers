@@ -54,5 +54,17 @@ def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple =
     for label, position, scale in zip(labels, positions, scales):
         position = position.astype(int)
         label = str(label)
-        cv2.putText(frame, str(label), position, font, scale, color, thickness, cv2.LINE_AA)
+        
+        # We need to center the text on the position
+        text_size = cv2.getTextSize(label, font, scale, thickness)
+        
+        # Get the width and height of the text
+        text_width = text_size[0][0]
+        text_height = text_size[0][1]
+        
+        # Alter position to better center the text
+        x = position[0] - text_width // 2
+        y = position[1] + text_height // 2
+        
+        cv2.putText(frame, str(label), (x, y), font, scale, color, thickness, cv2.LINE_AA)
     return frame
