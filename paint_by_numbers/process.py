@@ -144,11 +144,14 @@ class PaintByNumbers:
                 label_position, distance = labelling.find_visual_center(shell=shell, holes=holes)
                 if label_position is not None:
                     label_positions.append(label_position)
-                    # Max scale is capped at 1
-                    # Label scales based on distance
-                    # 0 - 1 scales between distance 0 and 30
-                    # Uses min-max scaling
-                    scale = min(1, (distance - 0) / (200 - 0))
+                    # We need to center the text on the position
+                    text_size = cv2.getTextSize(str(self.currently_processing_label), self.label_font, 1, self.label_thickness)
+                    # If the text is wider than the distance, we need to scale it down
+                    scale = 1
+                    if text_size[0][0] > distance:
+                        scale = distance / text_size[0][0]
+                    
+                    label_scales.append(scale)
 
         return label_positions, label_scales
     
