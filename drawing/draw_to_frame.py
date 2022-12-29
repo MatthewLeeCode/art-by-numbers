@@ -34,16 +34,16 @@ def draw_contours(frame: np.ndarray, contours: list, color: tuple = (0, 255, 0),
     return cv2.drawContours(frame, contours, -1, color, thickness)
 
 
-def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple = (0, 0, 0), font: int = cv2.FONT_HERSHEY_SIMPLEX, scales: float = [], thickness: int = 1) -> np.ndarray:
+def draw_labels(frame: np.ndarray, labels: list, positions: list, scales: float = [], color: tuple = (0, 0, 0), font: int = cv2.FONT_HERSHEY_SIMPLEX, thickness: int = 1) -> np.ndarray:
     """ Draws the given labels on the given frame.
     
     Args:
         frame (np.ndarray): The frame to draw on.
         labels (list): The labels to draw.
         positions (list): The positions of the labels.
+        scale (float, optional): The scale of the labels. Defaults to 1.
         color (tuple, optional): The color of the labels. Defaults to (0, 255, 0).
         font (int, optional): The font of the labels. Defaults to cv2.FONT_HERSHEY_SIMPLEX.
-        scale (float, optional): The scale of the labels. Defaults to 1.
         thickness (int, optional): The thickness of the labels. Defaults to 1.
         
     Returns:
@@ -52,7 +52,7 @@ def draw_labels(frame: np.ndarray, labels: list, positions: list, color: tuple =
     if scales == []:
         scales = [1] * len(labels)
     for label, position, scale in zip(labels, positions, scales):
-        position = position.astype(int)
+        position = [int(p) for p in position]
         label = str(label)
         
         # We need to center the text on the position

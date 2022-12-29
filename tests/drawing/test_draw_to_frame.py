@@ -100,6 +100,6 @@ def test_draw_labels(mock_putText) -> None:
     
     # Check that cv2.putText was called with the correct params
     assert mock_putText.call_count == 2
-    mock_putText.assert_any_call(frame, 'label1', (1, 1), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
-    mock_putText.assert_any_call(frame, 'label2', (2, 2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
+    mock_putText.assert_any_call(frame, 'label1', (-45, 12), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
+    mock_putText.assert_any_call(frame, 'label2', (-44, 13), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
 
