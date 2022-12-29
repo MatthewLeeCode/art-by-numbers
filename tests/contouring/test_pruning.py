@@ -22,4 +22,4 @@ def test_remove_small_contours():
     out_shells, out_holes = contouring.remove_small_contours(shells, holes, min_area)
 
     assert len(out_shells) == 1, "Shells should have one element"
-    assert len(out_holes[0]) == 1, "Holes should have one element"
+    assert len(out_holes[0]) == 2, "Holes should have one element"

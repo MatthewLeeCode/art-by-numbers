@@ -68,13 +68,13 @@ class PaintByNumbers:
         # Resize image
         self.image = cv2.resize(image, (self.width, self.height))
     
-    def cluster_image(self) -> np.ndarray:
+    def cluster_image(self) -> dict:
         """ Cluster the image into the num_colors
         
         Assigns the simplified_image, cluster_labels, and cluster_image
         
         Returns:
-            np.ndarray: The clustered image
+            The cluster labels
         """
         # Cluster the image
         clustering_spinner = Halo(text='Clustering image...', spinner='dots')
@@ -84,7 +84,7 @@ class PaintByNumbers:
         self.cluster_labels, self.cluster_image = clustering.kmeans_cluster(image=self.simplified_image, k=self.num_colors)
         
         clustering_spinner.succeed('Image clustered.')
-        return self.cluster_image
+        return self.cluster_labels
     
     def find_mask(self, color:tuple) -> np.ndarray:
         """ Find the mask for a color

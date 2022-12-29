@@ -47,24 +47,15 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
         >>> kmeans_cluster(image, 3)
         {0: (0, 0, 0), 1: (255, 255, 255), 2: (255, 0, 0)}, Image
     """
-    # Convert the image to a numpy array
     image_array = np.array(image)
-    
-    # Get the shape of the image
     w, h, d = image_array.shape
     
-    # Reshape the image to be a list of pixels
-    assert d == 3
+    assert d == 3, "Image must be RGB"
+    
+    # K-means clustering. Get the labels and cluster centers
     image_array = np.reshape(image_array, (w * h, d))
-    
-    # Perform the K-means clustering
     kmeans = KMeans(n_clusters=k, random_state=0, n_init="auto", max_iter=1000).fit(image_array)
-    #kmeans = BisectingKMeans(n_clusters=k).fit(image_array)
-    
-    # Get the cluster labels
     labels = kmeans.labels_
-    
-    # Get the cluster centers
     cluster_centers = kmeans.cluster_centers_
     
     # Convert the cluster centers to RGB values
@@ -73,7 +64,7 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
     # For each label, create a dictionary entry
     cluster_dict = {}
     for label in labels:
-        cluster_dict[label] = cluster_colors[label]
+        cluster_dict[int(label)] = cluster_colors[label]
     
     # Reshape the labels to the original image shape
     labels = np.reshape(labels, (w, h))
