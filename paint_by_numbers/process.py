@@ -37,7 +37,8 @@ class PaintByNumbers:
         height:int=None, 
         width:int=2000, 
         min_area:int=20,
-        custom_colors:list=[]) -> None:
+        custom_colors:list=[],
+        strip_removal_count=2) -> None:
         """ 
         Initialize the class.
 
@@ -64,6 +65,7 @@ class PaintByNumbers:
         self.width = width
         self.min_area = min_area
         self.custom_colors = custom_colors  
+        self.strip_removal_count = strip_removal_count
         
         # Resize image
         self.image = cv2.resize(image, (self.width, self.height))
@@ -83,6 +85,15 @@ class PaintByNumbers:
         self.simplified_image = clustering.remove_noise(image=self.image)
         self.cluster_labels, self.cluster_image = clustering.kmeans_cluster(image=self.simplified_image, k=self.num_colors)
         
+        # Strip removal. Best to do it a few times
+        distance_matrix = clustering.create_distance_matrix(color_labels=self.cluster_labels)
+        for _ in range(self.strip_removal_count):
+            self.cluster_image = clustering.remove_strips(
+                color_labels=self.cluster_labels, 
+                image=self.cluster_image,
+                distance_matrix=distance_matrix
+            )
+            
         clustering_spinner.succeed('Image clustered.')
         return self.cluster_labels
     

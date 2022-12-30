@@ -30,6 +30,8 @@ def create_distance_matrix(color_labels: dict) -> np.ndarray:
     distance_matrix = np.zeros((len(colors), len(colors)))
     for i, color1 in enumerate(colors):
         for j, color2 in enumerate(colors):
+            color1 = np.array(color1)
+            color2 = np.array(color2)
             distance_matrix[i, j] = np.linalg.norm(color1 - color2)
     return distance_matrix
 

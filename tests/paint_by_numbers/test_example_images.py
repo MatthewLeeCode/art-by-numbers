@@ -43,7 +43,7 @@ def test_example_image_target():
     expected_image = cv2.imread("tests/images/expected/target_pbn.png")
 
     
-@pytest.mark.skip(reason="Integration test")
+#@pytest.mark.skip(reason="Integration test")
 def test_example_image_frog():
     """
     Tests tests/images/examples/frog.jpg with paint by numbers
