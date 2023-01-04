@@ -18,6 +18,11 @@ from halo import Halo
 
 
 class PaintByNumbers:
+    masks: list=[]
+    contours: list=[]
+    heirarchies: list=[]
+    shells: list=[]
+    holes: list=[]
     cluster_labels: dict=None
     cluster_image: np.ndarray=None
     simplified_image: np.ndarray=None
@@ -68,6 +73,7 @@ class PaintByNumbers:
         self.strip_removal_count = strip_removal_count
         
         # Resize image
+        self.image = image
         self.image = cv2.resize(image, (self.width, self.height))
     
     def cluster_image(self) -> dict:
@@ -82,7 +88,9 @@ class PaintByNumbers:
         clustering_spinner = Halo(text='Clustering image...', spinner='dots')
         clustering_spinner.start()
         
-        self.simplified_image = clustering.remove_noise(image=self.image)
+        self.simplified_image = clustering.blur_image(image=self.image)
+        #self.simplified_image = clustering.morphology(self.simplified_image)
+        
         self.cluster_labels, self.cluster_image = clustering.kmeans_cluster(image=self.simplified_image, k=self.num_colors)
         
         # Strip removal. Best to do it a few times
@@ -179,27 +187,19 @@ class PaintByNumbers:
 
         return label_positions, label_scales
     
-    def draw_contours_and_labels(self, image: np.ndarray, contours:list[np.ndarray], label:str, label_positions:list, label_scales:list) -> np.ndarray:
-        """ Draw the contours and labels on the image
+    def draw_labels(self, image: np.ndarray, label:str, label_positions:list, label_scales:list) -> np.ndarray:
+        """ Draw the labels on the image
         
         Args:
             image (np.ndarray): The image to draw on
             label (str): The label to draw
-            contours (list[np.ndarray]): The contours to draw
             label_positions (list): The positions of the labels
             label_scales (list): The scales of the labels
             
         Returns:
-            np.ndarray: The image with contours and labels drawn on it
+            np.ndarray: The image with labels drawn on it
         """
         with Halo(text=f'Drawing contours and labels for label {self.currently_processing_label}...', spinner='dots'):
-            image = drawing.draw_contours(
-                frame=image, 
-                contours=contours, 
-                color=self.contour_color, 
-                thickness=self.contour_thickness
-            )
-            
             # Draw labels expects a list of labels + positions with both lists being the same size.
             # So we simply just expand the label to be a list of the same size as the label_positions
             labels = [label] * len(label_positions)
@@ -215,7 +215,49 @@ class PaintByNumbers:
                 thickness=self.label_thickness
             )
         return image
+    
+    
+    def draw_color_regions(self, image: np.ndarray, color:tuple, shells:list[np.ndarray], shell_holes:list[list[np.ndarray]]) -> np.ndarray:
+        """ Draw the color regions on the image
         
+        Args:
+            image: The image to draw on
+            color: The color to draw
+            shells: The shells to draw
+            shell_holes: The holes to draw
+            
+        Returns:
+            The image with the color regions drawn on it
+        """
+        with Halo(text=f'Drawing color regions for label {self.currently_processing_label}...', spinner='dots'):
+            image = drawing.draw_color_regions(
+                image=image,
+                color=color,
+                shells=shells,
+                shell_holes=shell_holes
+            )
+        return image
+        
+    def draw_contours(self, image:np.ndarray, contours:list[np.ndarray]) -> np.ndarray:
+        """ Draw the contours on the image
+        
+        Args:
+            image: The image to draw the contours
+            contours: The contours to draw
+            
+        Returns:
+            The image with the contours drawn on it
+        """
+        with Halo(text=f'Drawing contours for label {self.currently_processing_label}...', spinner='dots'):
+            image = cv2.drawContours(
+                image=image,
+                contours=contours,
+                contourIdx=-1,
+                color=self.contour_color,
+                thickness=self.contour_thickness
+            )
+        return image    
+    
     def process(self) -> np.ndarray:
         """ 
         Process the image.
@@ -238,11 +280,18 @@ class PaintByNumbers:
         Returns:
             np.ndarray: The processed image.
         """
+        self.mask = []
+        self.contours = []
+        self.heirarchies = []
+        self.shells = []
+        self.holes = []
+        
         # 1. Cluster the image into k colors (Includes removing noise)
         self.cluster_image()
         
         # Create an empty frame
         self.pbn_image = drawing.get_frame(height=self.height, width=self.width)
+        self.pbn_color = drawing.get_frame(height=self.height, width=self.width) # Color is the color regions
         
         # Order the keys so that the labels are drawn in the correct order
         label_keys = self.cluster_labels.keys()
@@ -255,19 +304,27 @@ class PaintByNumbers:
             try:
                 # 2. Find mask for each color
                 mask = self.find_mask(color=self.cluster_labels[key])
-
+                self.masks.append(mask)
+                
                 # 3. Find contours
                 contours, hierarchy = self.find_contours(mask=mask)
+                self.contours.append(contours)
+                self.heirarchies.append(hierarchy)
+                
                 shells, holes = self.find_shells_and_holes(contours=contours, hierarchy=hierarchy)
                 
                 # 4. Prune contours
                 shells, holes = self.prune_contours(shells=shells, holes=holes)
+                self.shells.append(shells)
+                self.holes.append(holes)
                 
                 # 5. Find label position
                 label_positions, label_scales = self.find_label_positions(shells=shells, shell_holes=holes)
                 
                 # 6. Draw contours and labels
-                self.pbn_image = self.draw_contours_and_labels(self.pbn_image, shells, key, label_positions, label_scales)
+                self.pbn_color = self.draw_color_regions(self.pbn_color, self.cluster_labels[key], shells, holes)
+                self.pbn_image = self.draw_labels(self.pbn_image, key, label_positions, label_scales)
+                self.pbn_image = self.draw_contours(self.pbn_image, contours)
             
             except Exception as e:
                 # Add success spinner message for label

@@ -14,7 +14,7 @@ from sklearn.cluster import KMeans, BisectingKMeans
 import cv2
 
 
-def remove_noise(image:np.ndarray) -> np.ndarray:
+def blur_image(image:np.ndarray) -> np.ndarray:
     """
     Removes noise from an image. We don't want small clusters
     of pixels to be considered as a color. We want large areas.
@@ -27,10 +27,26 @@ def remove_noise(image:np.ndarray) -> np.ndarray:
         np.ndarray: The image with noise removed.
     """
     # Blur the image
-    blur = cv2.GaussianBlur(image, (7, 7), sigmaX=9)
+    blur = cv2.GaussianBlur(image, (7, 7), sigmaX=4, sigmaY=4)
     
     return blur
 
+def denoise_image(image:np.ndarray) -> np.ndarray:
+    """
+    Removes noise from an image. We don't want small clusters
+    of pixels to be considered as a color. We want large areas.
+    Removing noise means the clustering algorithm can find larger regions
+
+    Args:
+        image (np.ndarray): The image to remove noise from.
+    
+    Returns:
+        np.ndarray: The image with noise removed.
+    """
+    # Denoise the image
+    denoised = cv2.fastNlMeansDenoisingColored(image, None, 10, 10, 7, 21)
+    
+    return denoised
 
 def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
     """ Performs a K-means cluster. Returns a dict containing the cluster labels and colors.
@@ -54,7 +70,7 @@ def kmeans_cluster(image:np.ndarray, k:int) -> tuple[dict, np.ndarray]:
     
     # K-means clustering. Get the labels and cluster centers
     image_array = np.reshape(image_array, (w * h, d))
-    kmeans = KMeans(n_clusters=k, random_state=0, n_init="auto", max_iter=1000).fit(image_array)
+    kmeans = KMeans(n_clusters=k, random_state=0, n_init="auto", max_iter=500, algorithm="elkan").fit(image_array)
     labels = kmeans.labels_
     cluster_centers = kmeans.cluster_centers_
     
@@ -103,7 +119,7 @@ def create_mask(clustered_image:np.ndarray, rgb:tuple) -> np.ndarray:
     return mask
 
 
-def morphology(mask:np.ndarray) -> np.ndarray:
+def morphology(mask:np.ndarray, iterations:int=2) -> np.ndarray:
     """ Performs morphology on the mask image.
     
     Morphology is used to remove noise from the mask image.
@@ -117,9 +133,9 @@ def morphology(mask:np.ndarray) -> np.ndarray:
     mask = mask.astype(np.uint8)
     
     # Create a kernel
-    kernel = np.ones((5, 5), np.uint8)
+    kernel = np.ones((7, 7), np.uint8)
     
     # Perform morphology
-    opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=iterations)
     
     return opening

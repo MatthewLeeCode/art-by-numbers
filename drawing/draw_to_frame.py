@@ -68,3 +68,22 @@ def draw_labels(frame: np.ndarray, labels: list, positions: list, scales: float 
         
         cv2.putText(frame, str(label), (x, y), font, scale, color, thickness, cv2.LINE_AA)
     return frame
+
+
+def draw_color_regions(image: np.ndarray, color:tuple, shells:list[np.ndarray], shell_holes:list[list[np.ndarray]]) -> np.ndarray:
+    """ Draws the given color regions on the given image.
+    
+    Args:
+        image (np.ndarray): The image to draw on.
+        color (tuple): The color of the regions.
+        shells (list[np.ndarray]): The shells of the regions.
+        shell_holes (list[list[np.ndarray]]): The holes of the regions.
+        
+    Returns:
+        np.ndarray: The image with the regions drawn on it.
+    """
+    image = image.copy()
+    image = cv2.drawContours(image, shells, -1, color, -1)
+    for holes in shell_holes:
+        image = cv2.drawContours(image, holes, -1, (255, 255, 255), -1)
+    return image

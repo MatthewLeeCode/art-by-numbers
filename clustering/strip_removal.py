@@ -92,7 +92,7 @@ def remove_strips(image: np.ndarray, color_labels:dict, distance_matrix: np.ndar
                 continue
             
             # If the pixel has only 1 neighbour, replace it with the next closest color
-            if num_of_neighbours == 1:
+            if num_of_neighbours <= 1:
                 # Find the key of this pixel
                 current_color_key = 0
                 for key, value in color_labels.items():
